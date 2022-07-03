@@ -9,7 +9,7 @@ body{
     justify-content: center;
     align-items: center;
     /*background-color: #efeeee;*/
-    background: url("bg.jpg");
+    background: url("bg.webp");
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
