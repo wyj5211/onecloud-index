@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>导航页</title>
+    <style>
+        /* 全局重置与变量 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+
+        /* 明暗主题变量 (亮色默认) */
+        :root {
+            --bg-gradient: linear-gradient(145deg, #f4f7fb 0%, #e9eef4 100%);
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --card-bg-solid: #ffffff;
+            --text-primary: #1e2b3c;
+            --text-secondary: #3a4c62;
+            --border-light: rgba(0, 0, 0, 0.06);
+            --shadow-color: rgba(0, 20, 40, 0.12);
+            --accent-color: #2d7a9b;
+            --accent-soft: #c8e1ed;
+            --card-hover-scale: 1.02;
+            --backdrop-blur: blur(12px);
+        }
+
+        /* 深色模式 (跟随系统) */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-gradient: linear-gradient(145deg, #1a262f 0%, #0f171f 100%);
+                --card-bg: rgba(25, 35, 45, 0.8);
+                --card-bg-solid: #1e2a34;
+                --text-primary: #e3edf5;
+                --text-secondary: #b0c5d6;
+                --border-light: rgba(255, 255, 255, 0.06);
+                --shadow-color: rgba(0, 0, 0, 0.4);
+                --accent-color: #5fa3c9;
+                --accent-soft: #2a4050;
+            }
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-gradient);
+            color: var(--text-primary);
+            padding: 1.5rem;
+            transition: background-color 0.2s, color 0.2s;
+            backdrop-filter: var(--backdrop-blur);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 主容器卡片效果 */
+        .nav-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 2rem auto;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 3rem 3rem 2rem 2rem;
+            box-shadow: 0 20px 40px var(--shadow-color), 0 4px 12px rgba(0,0,0,0.05);
+            padding: 2.5rem 2rem;
+            border: 1px solid var(--border-light);
+        }
+
+        /* 标题区域 */
+        .page-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.8rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, var(--accent-color), #4872a3);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 5px rgba(45, 122, 155, 0.15);
+        }
+
+        /* 服务网格布局：响应式卡片 */
+        .services-grid {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 1.8rem;
+            justify-content: center;
+            align-items: stretch;
+            margin-top: 1.5rem;
+        }
+
+        /* 卡片链接样式 */
+        .service-card {
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background: var(--card-bg-solid);
+            color: var(--text-primary);
+            width: 200px;
+            padding: 2rem 1rem 1.5rem;
+            border-radius: 2rem;
+            box-shadow: 0 12px 24px var(--shadow-color), 0 4px 8px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-light);
+            transition: transform 0.2s ease, box-shadow 0.25s ease, background 0.2s;
+            backdrop-filter: blur(4px);
+            will-change: transform;
+        }
+
+        .service-card:hover {
+            transform: translateY(-6px) scale(var(--card-hover-scale));
+            box-shadow: 0 24px 36px var(--shadow-color), 0 8px 16px rgba(0,0,0,0.1);
+            border-color: var(--accent-soft);
+        }
+
+        .service-card:active {
+            transform: translateY(-2px) scale(1.01);
+        }
+
+        /* 图标样式 (每个服务可独立配置) */
+        .service-icon {
+            width: 3.5rem;
+            height: 3.5rem;
+            margin-bottom: 1rem;
+            object-fit: contain;
+            filter: drop-shadow(0 6px 8px rgba(45, 122, 155, 0.3));
+            transition: transform 0.2s;
+        }
+
+        .service-card:hover .service-icon {
+            transform: rotate(3deg) scale(1.05);
+        }
+
+        .service-name {
+            font-size: 1.35rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            line-height: 1.3;
+        }
+
+        .service-port {
+            font-size: 1rem;
+            background: var(--accent-soft);
+            color: var(--text-primary);
+            padding: 0.25rem 1rem;
+            border-radius: 30px;
+            font-weight: 500;
+            border: 1px solid var(--border-light);
+            margin-top: 0.3rem;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(2px);
+        }
+
+        /* 只展示一个卡片时，看起来依然优雅 */
+        .services-grid:only-child {
+            justify-content: center;
+        }
+
+        /* 响应式微调 */
+        @media (max-width: 480px) {
+            .nav-container {
+                padding: 2rem 1rem;
+                border-radius: 2rem;
+            }
+            .page-header h1 {
+                font-size: 2.2rem;
+            }
+            .service-card {
+                width: 160px;
+                padding: 1.5rem 0.8rem 1.2rem;
+            }
+            .service-icon {
+                width: 2.8rem;
+                height: 2.8rem;
+            }
+            .service-name {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* 对极端小屏幕 (如折叠屏) 采用纵向 */
+        @media (max-width: 360px) {
+            .services-grid {
+                flex-direction: column;
+                align-items: center;
+            }
+            .service-card {
+                width: 220px;
+            }
+        }
+
+        /* 平滑加载过渡 */
+        .service-card {
+            opacity: 0;
+            animation: fadeInUp 0.4s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(15px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="nav-container">
+        <div class="page-header">
+            <h1>导航页</h1>
+        </div>
+
+        <!-- 服务卡片容器 (由JS动态填充，保证链接基于当前主机) -->
+        <div class="services-grid" id="servicesContainer"></div>
+
+        <!-- 页脚已完全移除 -->
+    </div>
+
+    <script>
+        (function() {
+            // ----- 服务数据定义 (每个服务独立配置名称、端口、图标URL) -----
+            const services = [
+                {
+                    name: '青龙面板',
+                    port: 5700,
+                    iconUrl: 'logo/qinglong.png'  // 使用占位logo，后续可替换为真实图标URL
+                    // 可继续添加 description 等字段，但当前未使用
+                },
+                {
+                    name: 'DPanel',
+                    port: 8807,
+                    iconUrl: 'logo/dpanel.png'
+                }
+                // 如需增加服务，按此格式添加即可，例如：
+                // { name: '文件管理', port: 5000, iconUrl: 'file.png' }
+            ];
+
+            // 获取当前主机名 (IP 或 域名) 并处理IPv6地址
+            function getFormattedHostname() {
+                let host = window.location.hostname;
+                if (!host) {
+                    return 'localhost';
+                }
+                // 检查是否为IPv6地址 (包含冒号，且不是因为端口)
+                if (host.includes(':')) {
+                    return `[${host}]`;
+                }
+                return host;
+            }
+
+            // 获取当前协议 (例如 "http:" 或 "https:")
+            function getCurrentProtocol() {
+                return window.location.protocol;
+            }
+
+            // 构建完整的服务URL
+            function buildServiceUrl(port) {
+                const protocol = getCurrentProtocol();
+                const hostname = getFormattedHostname();
+                return `${protocol}//${hostname}:${port}`;
+            }
+
+            // 渲染服务卡片
+            function renderServices() {
+                const container = document.getElementById('servicesContainer');
+                if (!container) return;
+
+                container.innerHTML = '';
+
+                if (services.length === 0) {
+                    container.innerHTML = '<div style="color: var(--text-secondary); padding: 2rem;">暂无服务</div>';
+                    return;
+                }
+
+                services.forEach((srv, index) => {
+                    const card = document.createElement('a');
+                    card.className = 'service-card';
+                    const fullUrl = buildServiceUrl(srv.port);
+                    card.href = fullUrl;
+
+                    // 使用每个服务独立的 iconUrl，去掉端口前的冒号
+                    card.innerHTML = `
+                        <img src="${srv.iconUrl}" alt="${srv.name}图标" class="service-icon" loading="lazy">
+                        <span class="service-name">${srv.name}</span>
+                        <span class="service-port">${srv.port}</span>
+                    `;
+
+                    card.style.animationDelay = `${index * 0.1}s`;
+                    container.appendChild(card);
+                });
+            }
+
+            // 初始化：渲染卡片
+            function init() {
+                renderServices();
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+    </script>
+</body>
+</html>
