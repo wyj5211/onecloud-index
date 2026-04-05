@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
@@ -66,7 +67,7 @@
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border-radius: 3rem 3rem 2rem 2rem;
-            box-shadow: 0 20px 40px var(--shadow-color), 0 4px 12px rgba(0,0,0,0.05);
+            box-shadow: 0 20px 40px var(--shadow-color), 0 4px 12px rgba(0, 0, 0, 0.05);
             padding: 2.5rem 2rem;
             border: 1px solid var(--border-light);
         }
@@ -112,7 +113,7 @@
             width: 200px;
             padding: 2rem 1rem 1.5rem;
             border-radius: 2rem;
-            box-shadow: 0 12px 24px var(--shadow-color), 0 4px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 12px 24px var(--shadow-color), 0 4px 8px rgba(0, 0, 0, 0.05);
             border: 1px solid var(--border-light);
             transition: transform 0.2s ease, box-shadow 0.25s ease, background 0.2s;
             backdrop-filter: blur(4px);
@@ -121,7 +122,7 @@
 
         .service-card:hover {
             transform: translateY(-6px) scale(var(--card-hover-scale));
-            box-shadow: 0 24px 36px var(--shadow-color), 0 8px 16px rgba(0,0,0,0.1);
+            box-shadow: 0 24px 36px var(--shadow-color), 0 8px 16px rgba(0, 0, 0, 0.1);
             border-color: var(--accent-soft);
         }
 
@@ -163,6 +164,93 @@
             backdrop-filter: blur(2px);
         }
 
+        /* 状态监控区域 */
+        .status-panel {
+            margin-top: 2.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-light);
+            background: var(--status-bg);
+            border-radius: 1.5rem;
+            padding: 1rem 1rem 1rem;
+        }
+
+        .status-title {
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: space-between;
+        }
+
+        .status-item {
+            flex: 1;
+            min-width: 150px;
+            background: var(--card-bg-solid);
+            border-radius: 1rem;
+            padding: 0.8rem;
+            box-shadow: 0 2px 6px var(--shadow-color);
+            border: 1px solid var(--border-light);
+        }
+
+        .status-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-bar {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            height: 8px;
+            overflow: hidden;
+            margin: 0.4rem 0;
+        }
+
+        .progress-fill {
+            background: var(--accent-color);
+            width: 0%;
+            height: 100%;
+            border-radius: 20px;
+            transition: width 0.3s ease;
+        }
+
+        .status-value {
+            font-size: 0.8rem;
+            font-family: monospace;
+            text-align: right;
+            color: var(--text-primary);
+        }
+
+        .disk-stats {
+            font-size: 0.75rem;
+            margin-top: 0.2rem;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 600px) {
+            .status-grid {
+                flex-direction: column;
+            }
+
+            .status-item {
+                min-width: auto;
+            }
+        }
+
         /* 只展示一个卡片时，看起来依然优雅 */
         .services-grid:only-child {
             justify-content: center;
@@ -174,17 +262,21 @@
                 padding: 2rem 1rem;
                 border-radius: 2rem;
             }
+
             .page-header h1 {
                 font-size: 2.2rem;
             }
+
             .service-card {
                 width: 160px;
                 padding: 1.5rem 0.8rem 1.2rem;
             }
+
             .service-icon {
                 width: 2.8rem;
                 height: 2.8rem;
             }
+
             .service-name {
                 font-size: 1.2rem;
             }
@@ -196,6 +288,7 @@
                 flex-direction: column;
                 align-items: center;
             }
+
             .service-card {
                 width: 220px;
             }
@@ -208,11 +301,19 @@
         }
 
         @keyframes fadeInUp {
-            0% { opacity: 0; transform: translateY(15px); }
-            100% { opacity: 1; transform: translateY(0); }
+            0% {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="nav-container">
         <div class="page-header">
@@ -221,12 +322,20 @@
 
         <!-- 服务卡片容器 (由JS动态填充，保证链接基于当前主机) -->
         <div class="services-grid" id="servicesContainer"></div>
+        <!-- 服务器状态监控区域 -->
+        <div class="status-panel" id="statusPanel">
+            <div class="status-title">
+                <span>🖥️ 服务器状态</span> <span style="font-size:0.7rem;" id="updateTime"></span>
+            </div>
+            <div class="status-grid" id="statusGrid">
+                <div class="status-item">加载中...</div>
+            </div>
+        </div>
 
-        <!-- 页脚已完全移除 -->
     </div>
 
     <script>
-        (function() {
+        (function () {
             // ----- 服务数据定义 (每个服务独立配置名称、端口、图标URL) -----
             const services = [
                 {
@@ -240,17 +349,17 @@
                     port: 8807,
                     iconUrl: 'logo/dpanel.png'
                 },
-		{
-			name: 'AstrBot',
-			port: 6185,
-			iconUrl: 'logo/astrbot.png'
+                {
+                    name: 'AstrBot',
+                    port: 6185,
+                    iconUrl: 'logo/astrbot.png'
 
-		},
-		    {
-			name: 'ttyd',
-			port: 8998,
-			iconUrl: 'logo/terminal.png'
-		    }
+                },
+                {
+                    name: 'ttyd',
+                    port: 8998,
+                    iconUrl: 'logo/terminal.png'
+                }
                 // 如需增加服务，按此格式添加即可，例如：
                 // { name: '文件管理', port: 5000, iconUrl: 'file.png' }
             ];
@@ -309,10 +418,72 @@
                     container.appendChild(card);
                 });
             }
+            // ---------- 状态监控相关 ----------
+            function updateStatusUI(data) {
+                const grid = document.getElementById('statusGrid');
+                if (!grid) return;
+                if (data.error) {
+                    grid.innerHTML = `<div class="status-item">⚠️ 获取状态失败: ${data.error}</div>`;
+                    return;
+                }
 
-            // 初始化：渲染卡片
+                // CPU 组件
+                const cpuPercent = data.cpu?.percent?.toFixed(1) || 0;
+                // RAM 组件
+                const ramUsed = data.ram?.used_mb?.toFixed(0) || 0;
+                const ramTotal = data.ram?.total_mb?.toFixed(0) || 0;
+                const ramPercent = data.ram?.percent?.toFixed(1) || 0;
+                // 磁盘
+                const disks = data.disks || [];
+
+                const diskRoot = disks.find(d => d.mount === '/') || { used_gb: 0, total_gb: 0, percent: 0 };
+                const diskSd = disks.find(d => d.mount === '/mnt/sdcard') || { used_gb: 0, total_gb: 0, percent: 0, error: true };
+
+                const html = `
+                    <div class="status-item">
+                        <div class="status-label">🧠 CPU 占用 <span>${cpuPercent}%</span></div>
+                        <div class="progress-bar"><div class="progress-fill" style="width: ${Math.min(100, cpuPercent)}%;"></div></div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">💾 内存占用 <span>${ramPercent}%</span></div>
+                        <div class="progress-bar"><div class="progress-fill" style="width: ${Math.min(100, ramPercent)}%;"></div></div>
+                        <div class="status-value">${ramUsed} MB / ${ramTotal} MB</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">💽 系统盘 (/) <span>${diskRoot.percent?.toFixed(1) || 0}%</span></div>
+                        <div class="progress-bar"><div class="progress-fill" style="width: ${Math.min(100, diskRoot.percent || 0)}%;"></div></div>
+                        <div class="status-value">${(diskRoot.used_gb || 0).toFixed(1)} GB / ${(diskRoot.total_gb || 0).toFixed(1)} GB</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">💽 外置存储 (/mnt/sdcard) <span>${diskSd.error ? '不可用' : (diskSd.percent?.toFixed(1) || 0) + '%'}</span></div>
+                        ${diskSd.error ? '<div class="status-value">未挂载或无法访问</div>' : `
+                        <div class="progress-bar"><div class="progress-fill" style="width: ${Math.min(100, diskSd.percent || 0)}%;"></div></div>
+                        <div class="status-value">${(diskSd.used_gb || 0).toFixed(1)} GB / ${(diskSd.total_gb || 0).toFixed(1)} GB</div>
+                        `}
+                    </div>
+                `;
+                grid.innerHTML = html;
+                const timeSpan = document.getElementById('updateTime');
+                if (timeSpan) timeSpan.innerText = new Date().toLocaleTimeString();
+            }
+
+            async function fetchServerStatus() {
+                try {
+                    const response = await fetch('/data.php');
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const data = await response.json();
+                    updateStatusUI(data);
+                } catch (err) {
+                    console.error('状态获取失败:', err);
+                    const grid = document.getElementById('statusGrid');
+                    if (grid) grid.innerHTML = `<div class="status-item">⚠️ 无法连接到状态服务</div>`;
+                }
+            }
+            // 初始化
             function init() {
                 renderServices();
+                fetchServerStatus();
+                setInterval(fetchServerStatus, 2000); // 2秒刷新
             }
 
             if (document.readyState === 'loading') {
@@ -323,4 +494,5 @@
         })();
     </script>
 </body>
+
 </html>
