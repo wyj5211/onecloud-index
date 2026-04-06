@@ -229,9 +229,9 @@
         }
 
         .status-value {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-family: monospace;
-            text-align: right;
+            text-align: left;
             color: var(--text-primary);
         }
 
@@ -427,38 +427,43 @@
                     return;
                 }
 
-                // CPU 组件
+                // CPU
                 const cpuPercent = data.cpu?.percent?.toFixed(1) || 0;
-                // RAM 组件
-                const ramUsed = data.ram?.used_mb?.toFixed(0) || 0;
-                const ramTotal = data.ram?.total_mb?.toFixed(0) || 0;
+                const load1 = data.load?.load1?.toFixed(2) ?? '?';
+                const load5 = data.load?.load5?.toFixed(2) ?? '?';
+                const load15 = data.load?.load15?.toFixed(2) ?? '?';
+
+                // RAM (单位 MiB)
+                const ramUsed = data.ram?.used_mib?.toFixed(0) || 0;
+                const ramTotal = data.ram?.total_mib?.toFixed(0) || 0;
                 const ramPercent = data.ram?.percent?.toFixed(1) || 0;
+
                 // 磁盘
                 const disks = data.disks || [];
-
-                const diskRoot = disks.find(d => d.mount === '/') || { used_gb: 0, total_gb: 0, percent: 0 };
-                const diskSd = disks.find(d => d.mount === '/mnt/sdcard') || { used_gb: 0, total_gb: 0, percent: 0, error: true };
+                const diskRoot = disks.find(d => d.mount === '/') || { used_gib: 0, total_gib: 0, percent: 0 };
+                const diskSd = disks.find(d => d.mount === '/mnt/sdcard') || { used_gib: 0, total_gib: 0, percent: 0, error: true };
 
                 const html = `
                     <div class="status-item">
                         <div class="status-label">🧠 CPU 占用 <span>${cpuPercent}%</span></div>
                         <div class="progress-bar"><div class="progress-fill" style="width: ${Math.min(100, cpuPercent)}%;"></div></div>
+                        <div class="status-value">${load1} ${load5} ${load15}</div>
                     </div>
                     <div class="status-item">
                         <div class="status-label">💾 内存占用 <span>${ramPercent}%</span></div>
                         <div class="progress-bar"><div class="progress-fill" style="width: ${Math.min(100, ramPercent)}%;"></div></div>
-                        <div class="status-value">${ramUsed} MB / ${ramTotal} MB</div>
+                        <div class="status-value">${ramUsed} MiB / ${ramTotal} MiB</div>
                     </div>
                     <div class="status-item">
                         <div class="status-label">💽 系统盘 (/) <span>${diskRoot.percent?.toFixed(1) || 0}%</span></div>
                         <div class="progress-bar"><div class="progress-fill" style="width: ${Math.min(100, diskRoot.percent || 0)}%;"></div></div>
-                        <div class="status-value">${(diskRoot.used_gb || 0).toFixed(1)} GB / ${(diskRoot.total_gb || 0).toFixed(1)} GB</div>
+                        <div class="status-value">${(diskRoot.used_gib || 0).toFixed(1)} GiB / ${(diskRoot.total_gib || 0).toFixed(1)} GiB</div>
                     </div>
                     <div class="status-item">
                         <div class="status-label">💽 外置存储 (/mnt/sdcard) <span>${diskSd.error ? '不可用' : (diskSd.percent?.toFixed(1) || 0) + '%'}</span></div>
                         ${diskSd.error ? '<div class="status-value">未挂载或无法访问</div>' : `
                         <div class="progress-bar"><div class="progress-fill" style="width: ${Math.min(100, diskSd.percent || 0)}%;"></div></div>
-                        <div class="status-value">${(diskSd.used_gb || 0).toFixed(1)} GB / ${(diskSd.total_gb || 0).toFixed(1)} GB</div>
+                        <div class="status-value">${(diskSd.used_gib || 0).toFixed(1)} GiB / ${(diskSd.total_gib || 0).toFixed(1)} GiB</div>
                         `}
                     </div>
                 `;

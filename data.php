@@ -2,15 +2,29 @@
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-cache, must-revalidate');
 
-// 禁止显示错误（生产环境可开启）
 error_reporting(0);
 ini_set('display_errors', 0);
 
-// 辅助函数：获取CPU使用率（通过两次采样/proc/stat，间隔100ms）
+// 获取系统平均负载 (1,5,15分钟)
+function getLoadAverage() {
+    $load = @file_get_contents('/proc/loadavg');
+    if ($load === false) return null;
+    $parts = preg_split('/\s+/', trim($load));
+    if (count($parts) >= 3) {
+        return [
+            'load1' => (float)$parts[0],
+            'load5' => (float)$parts[1],
+            'load15' => (float)$parts[2]
+        ];
+    }
+    return null;
+}
+
+// 获取CPU使用率 (采样间隔100ms)
 function getCpuUsage() {
     $stat1 = @file_get_contents('/proc/stat');
     if ($stat1 === false) return null;
-    usleep(100000); // 100ms
+    usleep(100000);
     $stat2 = @file_get_contents('/proc/stat');
     if ($stat2 === false) return null;
 
@@ -20,9 +34,8 @@ function getCpuUsage() {
 
     $fields1 = explode(' ', trim($m1[1]));
     $fields2 = explode(' ', trim($m2[1]));
-    // 取 user, nice, system, idle, iowait, irq, softirq, steal
     $tot1 = array_sum($fields1);
-    $idle1 = $fields1[3] + ($fields1[4] ?? 0); // idle + iowait
+    $idle1 = $fields1[3] + ($fields1[4] ?? 0);
     $tot2 = array_sum($fields2);
     $idle2 = $fields2[3] + ($fields2[4] ?? 0);
 
@@ -33,73 +46,73 @@ function getCpuUsage() {
     return round($usage, 1);
 }
 
-// 获取内存信息（MB）
+// 获取内存信息 (单位 MiB, 1 MiB = 1024 KiB)
 function getMemoryInfo() {
     $meminfo = @file_get_contents('/proc/meminfo');
     if (!$meminfo) return null;
     $total = preg_match('/MemTotal:\s+(\d+)/', $meminfo, $t) ? $t[1] : 0;
     $available = preg_match('/MemAvailable:\s+(\d+)/', $meminfo, $a) ? $a[1] : 0;
-    // 如果没有 MemAvailable，则用 MemFree+Buffers+Cached 近似
     if ($available == 0) {
         $free = preg_match('/MemFree:\s+(\d+)/', $meminfo, $f) ? $f[1] : 0;
         $buffers = preg_match('/Buffers:\s+(\d+)/', $meminfo, $b) ? $b[1] : 0;
         $cached = preg_match('/(?:Cached|SReclaimable):\s+(\d+)/', $meminfo, $c) ? $c[1] : 0;
         $available = $free + $buffers + $cached;
     }
-    $total_mb = round($total / 1024, 0);
-    $available_mb = round($available / 1024, 0);
-    $used_mb = $total_mb - $available_mb;
-    $percent = ($total_mb > 0) ? ($used_mb / $total_mb) * 100 : 0;
+    $total_mib = round($total / 1024, 0);   // KB → MiB
+    $available_mib = round($available / 1024, 0);
+    $used_mib = $total_mib - $available_mib;
+    $percent = ($total_mib > 0) ? ($used_mib / $total_mib) * 100 : 0;
     return [
-        'used_mb' => $used_mb,
-        'total_mb' => $total_mb,
+        'used_mib' => $used_mib,
+        'total_mib' => $total_mib,
         'percent' => round($percent, 1)
     ];
 }
 
-// 获取磁盘信息（GB）
+// 获取磁盘信息 (单位 GiB)
 function getDiskInfo($path) {
     if (!file_exists($path) || !is_dir($path)) {
-        return ['error' => true, 'used_gb' => 0, 'total_gb' => 0, 'percent' => 0];
+        return ['error' => true, 'used_gib' => 0, 'total_gib' => 0, 'percent' => 0];
     }
     $total = @disk_total_space($path);
     $free = @disk_free_space($path);
     if ($total === false || $free === false) {
-        return ['error' => true, 'used_gb' => 0, 'total_gb' => 0, 'percent' => 0];
+        return ['error' => true, 'used_gib' => 0, 'total_gib' => 0, 'percent' => 0];
     }
     $used = $total - $free;
-    $total_gb = $total / 1024 / 1024 / 1024;
-    $used_gb = $used / 1024 / 1024 / 1024;
-    $percent = ($total_gb > 0) ? ($used_gb / $total_gb) * 100 : 0;
+    $total_gib = $total / 1024 / 1024 / 1024;
+    $used_gib = $used / 1024 / 1024 / 1024;
+    $percent = ($total_gib > 0) ? ($used_gib / $total_gib) * 100 : 0;
     return [
         'error' => false,
-        'used_gb' => round($used_gb, 1),
-        'total_gb' => round($total_gb, 1),
+        'used_gib' => round($used_gib, 1),
+        'total_gib' => round($total_gib, 1),
         'percent' => round($percent, 1)
     ];
 }
 
-// 组装响应数据
+$load = getLoadAverage();
 $cpu = getCpuUsage();
 $ram = getMemoryInfo();
 $diskRoot = getDiskInfo('/');
 $diskSdcard = getDiskInfo('/mnt/sdcard');
 
 $response = [
+    'load' => $load ?: ['load1' => 0, 'load5' => 0, 'load15' => 0],
     'cpu' => $cpu !== null ? ['percent' => $cpu] : ['percent' => 0],
-    'ram' => $ram ?: ['used_mb' => 0, 'total_mb' => 0, 'percent' => 0],
+    'ram' => $ram ?: ['used_mib' => 0, 'total_mib' => 0, 'percent' => 0],
     'disks' => [
         [
             'mount' => '/',
-            'used_gb' => $diskRoot['used_gb'],
-            'total_gb' => $diskRoot['total_gb'],
+            'used_gib' => $diskRoot['used_gib'],
+            'total_gib' => $diskRoot['total_gib'],
             'percent' => $diskRoot['percent'],
             'error' => $diskRoot['error']
         ],
         [
             'mount' => '/mnt/sdcard',
-            'used_gb' => $diskSdcard['used_gb'],
-            'total_gb' => $diskSdcard['total_gb'],
+            'used_gib' => $diskSdcard['used_gib'],
+            'total_gib' => $diskSdcard['total_gib'],
             'percent' => $diskSdcard['percent'],
             'error' => $diskSdcard['error']
         ]
